@@ -38,6 +38,22 @@ const dashboardItems: NavigationMenuItem[] = [
 const items = computed<NavigationMenuItem[][]>(() =>
   role.value === 'compras' ? [[pedidosItem]] : [dashboardItems]
 )
+
+// Exportação do dashboard atual em PDF (download automático).
+const route = useRoute()
+const { exporting, exportToPdf } = useExportPdf()
+
+const pageTitles: Record<string, string> = {
+  '/': 'Home',
+  '/investimento': 'Investimentos',
+  '/materiais': 'Materiais',
+  '/horastrabalhadas': 'Horas Trabalhadas',
+  '/pedidos': 'Pedidos de Compra'
+}
+
+function handleExportPdf() {
+  exportToPdf(pageTitles[route.path] ?? 'dashboard')
+}
 </script>
 
 <template>
@@ -78,29 +94,41 @@ const items = computed<NavigationMenuItem[][]>(() =>
       </template>
 
       <template #footer="{ collapsed }">
-        <div
-          class="flex w-full items-center gap-2"
-          :class="collapsed ? 'justify-center' : 'justify-between'"
-        >
-          <div
-            v-if="!collapsed && user"
-            class="min-w-0"
-          >
-            <p class="truncate text-sm font-medium">
-              {{ user.nome }}
-            </p>
-            <p class="truncate text-xs text-muted capitalize">
-              {{ user.role }}
-            </p>
-          </div>
+        <div class="flex w-full flex-col gap-2">
           <UButton
-            icon="i-lucide-log-out"
-            color="neutral"
-            variant="ghost"
-            :label="collapsed ? undefined : 'Sair'"
-            aria-label="Sair"
-            @click="logout"
+            icon="i-lucide-file-down"
+            color="primary"
+            variant="soft"
+            block
+            :loading="exporting"
+            :label="collapsed ? undefined : 'Exportar PDF'"
+            aria-label="Exportar PDF"
+            @click="handleExportPdf"
           />
+          <div
+            class="flex w-full items-center gap-2"
+            :class="collapsed ? 'justify-center' : 'justify-between'"
+          >
+            <div
+              v-if="!collapsed && user"
+              class="min-w-0"
+            >
+              <p class="truncate text-sm font-medium">
+                {{ user.nome }}
+              </p>
+              <p class="truncate text-xs text-muted capitalize">
+                {{ user.role }}
+              </p>
+            </div>
+            <UButton
+              icon="i-lucide-log-out"
+              color="neutral"
+              variant="ghost"
+              :label="collapsed ? undefined : 'Sair'"
+              aria-label="Sair"
+              @click="logout"
+            />
+          </div>
         </div>
       </template>
     </UDashboardSidebar>
